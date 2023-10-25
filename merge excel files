@@ -1,0 +1,50 @@
+import os
+import pandas as pd
+
+# Define the folder path where your Excel files are located (anonymized).
+folder_path = 'C:\\path_to_your_excel_files'
+
+# Define the target folder path where the merged Excel file will be saved (anonymized).
+target_folder = 'C:\\path_to_target_folder'
+
+# Check if the target folder exists, and create it if it doesn't.
+if not os.path.exists(target_folder):
+    os.makedirs(target_folder)
+
+if not os.path.exists(folder_path):
+    print(f"The specified folder path '{folder_path}' does not exist.")
+else:
+    try:
+        # Create an empty dictionary to store the merged data.
+        merged_data = {}
+
+        # List all files in the folder.
+        num_files = 0
+        for filename in os.listdir(folder_path):
+            if filename.endswith(".xlsx"):
+                # Read each Excel file into a DataFrame.
+                data = pd.read_excel(os.path.join(folder_path, filename))
+
+                # Truncate or shorten the sheet name to fit within the 31-character limit.
+                sheet_name = filename[:31]
+
+                # Store the data in the dictionary with the truncated sheet name as the key.
+                merged_data[sheet_name] = data
+                num_files += 1
+
+        # Specify the full path for the merged output file, including the target folder.
+        output_file = os.path.join(target_folder, 'merged_output.xlsx')
+
+        # Create a writer object to save the merged data to the specified Excel file.
+        with pd.ExcelWriter(output_file) as writer:
+            for sheet_name, data in merged_data.items():
+                data.to_excel(writer, sheet_name=sheet_name, index=False)
+
+        # Check if the merged file has at least 2 sheets.
+        num_sheets = len(writer.sheets)
+
+        print(f"Merged Excel file created at: {output_file}")
+        print(f"Number of files in the folder: {num_files}")
+        print(f"Number of sheets in the merged file: {num_sheets}")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
